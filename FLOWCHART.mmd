@@ -1,0 +1,11 @@
+flowchart TD
+    A[Apply Leave] --> B[Validate Employee ID]
+    B --> C{Dates Valid?}
+    C -- No --> X[Reject Request]
+    C -- Yes --> D{Balance Enough?}
+    D -- No --> X
+    D -- Yes --> E[Submit Request]
+    E --> F[Admin Review]
+    F --> G{Approve?}
+    G -- No --> H[Reject + Notify]
+    G -- Yes --> I[Approve + Update Balance]

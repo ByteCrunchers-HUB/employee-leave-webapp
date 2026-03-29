@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Employee Dashboard - LeaveHub</title>
+  <link rel="stylesheet" href="/style.css" />
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+  <nav class="nav-bar glass">
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <i data-lucide="layout-dashboard" style="color: var(--primary); width: 24px;"></i>
+      <div class="nav-logo">LeaveHub</div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 1rem;">
+      <span id="pNameTop" style="font-size: 0.875rem; font-weight: 500; color: var(--text-muted);"></span>
+      <button id="logoutBtn" class="btn btn-secondary">
+        <i data-lucide="log-out" style="width: 16px; margin-right: 6px;"></i> Logout
+      </button>
+    </div>
+  </nav>
+
+  <main class="dashboard-container">
+    <div class="grid grid-2">
+      <!-- Profile Card -->
+      <section class="card">
+        <div
+          style="display: flex; align-items: center; gap: 10px; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem;">
+          <i data-lucide="user" style="color: var(--primary);"></i>
+          <h2 style="font-size: 1.125rem; font-weight: 600;">My Profile</h2>
+        </div>
+        <div style="display: grid; gap: 0.75rem;">
+          <div style="display: flex; justify-content: space-between;"><span style="color: var(--text-muted);">Employee
+              ID</span> <span id="pEmpId" style="font-weight: 500;">-</span></div>
+          <div style="display: flex; justify-content: space-between;"><span
+              style="color: var(--text-muted);">Name</span> <span id="pName" style="font-weight: 500;">-</span></div>
+          <div style="display: flex; justify-content: space-between;"><span
+              style="color: var(--text-muted);">Department</span> <span id="pDept" style="font-weight: 500;">-</span>
+          </div>
+          <div style="display: flex; justify-content: space-between;"><span
+              style="color: var(--text-muted);">Designation</span> <span id="pDesig" style="font-weight: 500;">-</span>
+          </div>
+          <div style="display: flex; justify-content: space-between;"><span
+              style="color: var(--text-muted);">Email</span> <span id="pEmail" style="font-weight: 500;">-</span></div>
+          <div style="display: flex; justify-content: space-between;"><span
+              style="color: var(--text-muted);">Phone</span> <span id="pPhone" style="font-weight: 500;">-</span></div>
+        </div>
+      </section>
+
+      <!-- Balance Card -->
+      <section class="card"
+        style="display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: white;">
+        <i data-lucide="calendar-check" style="width: 48px; height: 48px; margin-bottom: 1rem; opacity: 0.8;"></i>
+        <h2 style="font-size: 1.125rem; font-weight: 500; opacity: 0.9;">Available Balance</h2>
+        <div id="balance" style="font-size: 4rem; font-weight: 800; line-height: 1;">-</div>
+        <p style="margin-top: 0.5rem; opacity: 0.8; font-weight: 500;">DAYS REMAINING</p>
+      </section>
+    </div>
+
+    <!-- Apply Leave Section -->
+    <section class="card" style="margin-top: 1.5rem;">
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 1.5rem;">
+        <i data-lucide="send" style="color: var(--primary);"></i>
+        <h2 style="font-size: 1.125rem; font-weight: 600;">Request Leave</h2>
+      </div>
+      <div class="grid grid-2">
+        <div style="display: grid; gap: 0.5rem;">
+          <label style="font-size: 0.875rem; font-weight: 500; color: var(--text-muted);">Leave Type</label>
+          <select id="leaveType" class="input-field">
+            <option value="Casual">Casual</option>
+            <option value="Sick">Sick</option>
+            <option value="Earned">Earned</option>
+            <option value="Maternity">Maternity</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div style="display: grid; gap: 0.5rem;">
+          <label style="font-size: 0.875rem; font-weight: 500; color: var(--text-muted);">Reason</label>
+          <input id="reason" class="input-field" placeholder="Brief reason for leave" />
+        </div>
+        <div style="display: grid; gap: 0.5rem;">
+          <label style="font-size: 0.875rem; font-weight: 500; color: var(--text-muted);">Start Date</label>
+          <input id="startDate" type="date" class="input-field" />
+        </div>
+        <div style="display: grid; gap: 0.5rem;">
+          <label style="font-size: 0.875rem; font-weight: 500; color: var(--text-muted);">End Date</label>
+          <input id="endDate" type="date" class="input-field" />
+        </div>
+      </div>
+      <div style="margin-top: 1.5rem; display: flex; align-items: center; gap: 1rem;">
+        <button id="applyBtn" class="btn btn-primary" style="padding: 0.75rem 2rem;">Submit Request</button>
+        <div id="applyMsg" style="font-size: 0.875rem; color: var(--error);"></div>
+      </div>
+    </section>
+
+    <!-- History Tables -->
+    <section class="card" style="margin-top: 1.5rem;">
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 1.5rem;">
+        <i data-lucide="history" style="color: var(--primary);"></i>
+        <h2 style="font-size: 1.125rem; font-weight: 600;">My Requests History</h2>
+      </div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Type</th>
+              <th>Period</th>
+              <th>Days</th>
+              <th>Reason</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="myRows"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="/assets/employee.js"></script>
+  <script>
+    lucide.createIcons();
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (user) document.getElementById('pNameTop').innerText = user.name;
+  </script>
+</body>
+
+</html>

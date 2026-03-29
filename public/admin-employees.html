@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Employees - LeaveHub Admin</title>
+    <link rel="stylesheet" href="/style.css" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+    <nav class="nav-bar glass">
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <i data-lucide="shield-check" style="color: var(--primary); width: 24px;"></i>
+            <div class="nav-logo">LeaveHub Admin</div>
+        </div>
+
+        <div class="nav-links">
+            <a href="/admin/dashboard" class="nav-link"><i data-lucide="home"></i> Dashboard</a>
+            <a href="/admin/queue" class="nav-link"><i data-lucide="inbox"></i> Leave Queue</a>
+            <a href="/admin/employees" class="nav-link active"><i data-lucide="database"></i> Employees</a>
+            <a href="/admin/add" class="nav-link"><i data-lucide="user-plus"></i> Add Employee</a>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <span
+                style="font-size: 0.875rem; font-weight: 500; color: var(--text-muted); background: #f1f5f9; padding: 4px 12px; border-radius: 20px;">Administrator</span>
+            <button id="logoutBtn" class="btn btn-secondary">
+                <i data-lucide="log-out" style="width: 16px; margin-right: 6px;"></i> Logout
+            </button>
+        </div>
+    </nav>
+
+    <main class="dashboard-container anim-fade-in">
+        <div style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h1 style="font-size: 1.5rem; font-weight: 700;">Employee Directory</h1>
+                <p style="color: var(--text-muted);">Browse all registered employees in the system.</p>
+            </div>
+            <button class="btn btn-primary" onclick="location.href='/admin/add'">
+                <i data-lucide="user-plus" style="width: 18px; margin-right: 8px;"></i> Add New
+            </button>
+        </div>
+
+        <!-- Employees Table -->
+        <section class="card">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Emp ID</th>
+                            <th>Name</th>
+                            <th>Department</th>
+                            <th>Designation</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                        </tr>
+                    </thead>
+                    <tbody id="empRows"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <div style="display:none">
+        <tbody id="stackRows"></tbody>
+        <input id="aEmpId">
+    </div>
+
+    <script src="/assets/admin.js"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>

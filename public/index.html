@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Leave Management - Portal</title>
+  <link rel="stylesheet" href="/style.css" />
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="auth-wrapper">
+  <div class="card auth-card glass anim-fade-in">
+    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 2rem;">
+        <i data-lucide="calendar" style="color: var(--primary); width: 32px; height: 32px;"></i>
+        <h1 class="nav-logo" style="margin-bottom: 0;">Employee Portal</h1>
+    </div>
+
+    <div id="loginSection">
+        <h2 class="auth-title">Welcome Back</h2>
+        <p class="auth-subtitle">Login to manage your leave requests</p>
+        
+        <div style="display: grid; gap: 1rem;">
+            <div style="position: relative;">
+                <input id="email" class="input-field" placeholder="Email Address" />
+            </div>
+            <div style="position: relative;">
+                <input id="password" type="password" class="input-field" placeholder="Password" />
+            </div>
+            <button id="loginBtn" class="btn btn-primary" style="width: 100%;">
+                <i data-lucide="log-in" style="width: 18px; margin-right: 8px;"></i> Login
+            </button>
+            <p style="text-align: center; font-size: 0.875rem; color: var(--text-muted);">
+                Don't have an account? <a href="#" id="showRegister" style="color: var(--primary); font-weight: 500; text-decoration: none;">Register here</a>
+            </p>
+        </div>
+    </div>
+
+    <div id="registerSection" style="display: none;">
+        <h2 class="auth-title">Create Account</h2>
+        <p class="auth-subtitle">Register as an employee</p>
+        
+        <div style="display: grid; gap: 1rem; max-height: 480px; overflow-y: auto; padding-right: 5px;">
+            <input id="empId" class="input-field" placeholder="Employee ID (e.g., EMP101)" />
+            <input id="name" class="input-field" placeholder="Full Name" />
+            <input id="department" class="input-field" placeholder="Department" />
+            <input id="designation" class="input-field" placeholder="Designation" />
+            <input id="phone" class="input-field" placeholder="Phone Number" />
+            <input id="regEmail" class="input-field" placeholder="Email" />
+            <input id="regPassword" type="password" class="input-field" placeholder="Password" />
+            <button id="registerBtn" class="btn btn-success" style="width: 100%;">
+                <i data-lucide="user-plus" style="width: 18px; margin-right: 8px;"></i> Create Account
+            </button>
+            <p style="text-align: center; font-size: 0.875rem; color: var(--text-muted);">
+                Already registered? <a href="#" id="showLogin" style="color: var(--primary); font-weight: 500; text-decoration: none;">Login here</a>
+            </p>
+        </div>
+    </div>
+
+    <div id="msg" style="margin-top: 1rem; text-align: center; font-size: 0.875rem; color: var(--error); min-height: 1.25rem;"></div>
+  </div>
+
+  <script src="/assets/auth.js"></script>
+  <script>
+    lucide.createIcons();
+    const loginSec = document.getElementById('loginSection');
+    const registerSec = document.getElementById('registerSection');
+    const msg = document.getElementById('msg');
+
+    document.getElementById('showRegister').addEventListener('click', (e) => {
+        e.preventDefault();
+        loginSec.style.display = 'none';
+        registerSec.style.display = 'block';
+        msg.innerText = '';
+    });
+
+    document.getElementById('showLogin').addEventListener('click', (e) => {
+        e.preventDefault();
+        registerSec.style.display = 'none';
+        loginSec.style.display = 'block';
+        msg.innerText = '';
+    });
+  </script>
+</body>
+</html>
+

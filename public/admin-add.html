@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Add Employee - LeaveHub Admin</title>
+    <link rel="stylesheet" href="/style.css" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+    <nav class="nav-bar glass">
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <i data-lucide="shield-check" style="color: var(--primary); width: 24px;"></i>
+            <div class="nav-logo">LeaveHub Admin</div>
+        </div>
+
+        <div class="nav-links">
+            <a href="/admin/dashboard" class="nav-link"><i data-lucide="home"></i> Dashboard</a>
+            <a href="/admin/queue" class="nav-link"><i data-lucide="inbox"></i> Leave Queue</a>
+            <a href="/admin/employees" class="nav-link"><i data-lucide="database"></i> Employees</a>
+            <a href="/admin/add" class="nav-link active"><i data-lucide="user-plus"></i> Add Employee</a>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <span
+                style="font-size: 0.875rem; font-weight: 500; color: var(--text-muted); background: #f1f5f9; padding: 4px 12px; border-radius: 20px;">Administrator</span>
+            <button id="logoutBtn" class="btn btn-secondary">
+                <i data-lucide="log-out" style="width: 16px; margin-right: 6px;"></i> Logout
+            </button>
+        </div>
+    </nav>
+
+    <main class="dashboard-container anim-fade-in">
+        <div style="margin-bottom: 2rem;">
+            <h1 style="font-size: 1.5rem; font-weight: 700;">Add New Employee</h1>
+            <p style="color: var(--text-muted);">Register a new employee into the system.</p>
+        </div>
+
+        <!-- Insert Employee Section -->
+        <section class="card" style="max-width: 800px;">
+            <div class="grid grid-2">
+                <div style="display: grid; gap: 0.5rem;">
+                    <label style="font-size: 0.875rem; font-weight: 500; color: var(--text-muted);">Employee ID</label>
+                    <input id="aEmpId" class="input-field" placeholder="e.g. EMP1001" />
+                </div>
+                <div style="display: grid; gap: 0.5rem;">
+                    <label style="font-size: 0.875rem; font-weight: 500; color: var(--text-muted);">Full Name</label>
+                    <input id="aName" class="input-field" placeholder="Jane Doe" />
+                </div>
+                <div style="display: grid; gap: 0.5rem;">
+                    <label style="font-size: 0.875rem; font-weight: 500; color: var(--text-muted);">Department</label>
+                    <input id="aDept" class="input-field" placeholder="Engineering" />
+                </div>
+                <div style="display: grid; gap: 0.5rem;">
+                    <label style="font-size: 0.875rem; font-weight: 500; color: var(--text-muted);">Designation</label>
+                    <input id="aDesig" class="input-field" placeholder="Software Engineer" />
+                </div>
+                <div style="display: grid; gap: 0.5rem;">
+                    <label style="font-size: 0.875rem; font-weight: 500; color: var(--text-muted);">Email
+                        Address</label>
+                    <input id="aEmail" type="email" class="input-field" placeholder="jane@company.com" />
+                </div>
+                <div style="display: grid; gap: 0.5rem;">
+                    <label style="font-size: 0.875rem; font-weight: 500; color: var(--text-muted);">Phone Number</label>
+                    <input id="aPhone" class="input-field" placeholder="+1 234 567 8900" />
+                </div>
+                <div style="display: grid; gap: 0.5rem; grid-column: 1 / -1;">
+                    <label style="font-size: 0.875rem; font-weight: 500; color: var(--text-muted);">Initial
+                        Password</label>
+                    <input id="aPass" type="password" class="input-field" placeholder="Temporary password" />
+                </div>
+            </div>
+
+            <div
+                style="margin-top: 2rem; display: flex; align-items: center; gap: 1rem; border-top: 1px solid var(--border); padding-top: 1.5rem;">
+                <button id="addEmpBtn" class="btn btn-primary" style="padding: 0.75rem 2rem;">
+                    <i data-lucide="check" style="width: 18px; margin-right: 8px;"></i> Create Account
+                </button>
+                <div id="addEmpMsg" style="font-size: 0.875rem; font-weight: 500; color: var(--primary);"></div>
+            </div>
+        </section>
+    </main>
+
+    <div style="display:none">
+        <tbody id="empRows"></tbody>
+        <tbody id="stackRows"></tbody>
+    </div>
+
+    <script src="/assets/admin.js"></script>
+    <script>
+        lucide.createIcons();
+
+        // Redirect to employees list after successful submission
+        const originalAddEmployee = addEmployee;
+        addEmployee = async () => {
+            await originalAddEmployee();
+            if (document.getElementById('addEmpMsg').textContent === 'Employee added.') {
+                document.getElementById('addEmpMsg').style.color = 'var(--success)';
+                setTimeout(() => location.href = '/admin/employees', 1000);
+            } else {
+                document.getElementById('addEmpMsg').style.color = 'var(--error)';
+            }
+        };
+
+        // Reattach the wrapped event listener
+        document.getElementById('addEmpBtn').removeEventListener('click', originalAddEmployee); // The one in admin.js
+        document.getElementById('addEmpBtn').addEventListener('click', addEmployee);
+    </script>
+</body>
+
+</html>

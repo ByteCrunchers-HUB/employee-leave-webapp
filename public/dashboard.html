@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dashboard - LeaveHub</title>
+    <link rel="stylesheet" href="/style.css" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+    <nav class="nav-bar glass">
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <i data-lucide="layout-dashboard" style="color: var(--primary); width: 24px;"></i>
+            <div class="nav-logo">LeaveHub</div>
+        </div>
+
+        <div class="nav-links">
+            <a href="/dashboard" class="nav-link active"><i data-lucide="home"></i> Dashboard</a>
+            <a href="/apply" class="nav-link"><i data-lucide="send"></i> Apply Leave</a>
+            <a href="/history" class="nav-link"><i data-lucide="history"></i> History</a>
+            <a href="/profile" class="nav-link"><i data-lucide="user"></i> Profile</a>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <span id="pNameTop" style="font-size: 0.875rem; font-weight: 500; color: var(--text-muted);"></span>
+            <button id="logoutBtn" class="btn btn-secondary">
+                <i data-lucide="log-out" style="width: 16px; margin-right: 6px;"></i> Logout
+            </button>
+        </div>
+    </nav>
+
+    <main class="dashboard-container">
+        <div class="anim-fade-in" style="margin-bottom: 2rem;">
+            <h1 style="font-size: 1.5rem; font-weight: 700;">Welcome, <span id="pNameDisplay">Employee</span>!</h1>
+            <p style="color: var(--text-muted);">Here's your leave summary.</p>
+        </div>
+
+        <div class="grid grid-2">
+            <!-- Balance Card -->
+            <section class="card"
+                style="display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: white; padding: 3rem 2rem;">
+                <i data-lucide="calendar-check"
+                    style="width: 48px; height: 48px; margin-bottom: 1rem; opacity: 0.8;"></i>
+                <h2 style="font-size: 1.125rem; font-weight: 500; opacity: 0.9;">Available Balance</h2>
+                <div id="balance" style="font-size: 5rem; font-weight: 800; line-height: 1; margin: 0.5rem 0;">-</div>
+                <p style="opacity: 0.8; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Days
+                    Remaining</p>
+            </section>
+
+            <!-- Quick Quick Actions / Stats -->
+            <div style="display: grid; gap: 1.5rem;">
+                <section class="card" style="display: flex; align-items: center; gap: 1rem; cursor: pointer;"
+                    onclick="location.href='/apply.html'">
+                    <div style="background: rgba(99, 102, 241, 0.1); padding: 1rem; border-radius: var(--radius-md);">
+                        <i data-lucide="plus-circle" style="color: var(--primary);"></i>
+                    </div>
+                    <div>
+                        <h3 style="font-size: 1rem; font-weight: 600;">Request Leave</h3>
+                        <p style="font-size: 0.875rem; color: var(--text-muted);">Apply for a new leave request</p>
+                    </div>
+                </section>
+
+                <section class="card" style="display: flex; align-items: center; gap: 1rem; cursor: pointer;"
+                    onclick="location.href='/history.html'">
+                    <div style="background: rgba(16, 185, 129, 0.1); padding: 1rem; border-radius: var(--radius-md);">
+                        <i data-lucide="list" style="color: var(--success);"></i>
+                    </div>
+                    <div>
+                        <h3 style="font-size: 1rem; font-weight: 600;">Leave History</h3>
+                        <p style="font-size: 0.875rem; color: var(--text-muted);">View your previous requests</p>
+                    </div>
+                </section>
+
+                <section class="card" style="display: flex; align-items: center; gap: 1rem; cursor: pointer;"
+                    onclick="location.href='/profile.html'">
+                    <div style="background: rgba(245, 158, 11, 0.1); padding: 1rem; border-radius: var(--radius-md);">
+                        <i data-lucide="user-cog" style="color: var(--warning);"></i>
+                    </div>
+                    <div>
+                        <h3 style="font-size: 1rem; font-weight: 600;">My Profile</h3>
+                        <p style="font-size: 0.875rem; color: var(--text-muted);">Manage your personal details</p>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <!-- Dummy IDs to avoid JS errors in shared file -->
+    <div style="display:none">
+        <span id="pEmpId"></span><span id="pName"></span><span id="pDept"></span>
+        <span id="pDesig"></span><span id="pEmail"></span><span id="pPhone"></span>
+        <tbody id="myRows"></tbody>
+        <input id="leaveType"><input id="reason"><input id="startDate"><input id="endDate">
+        <button id="applyBtn"></button>
+        <div id="applyMsg"></div>
+    </div>
+
+    <script src="/assets/employee.js"></script>
+    <script>
+        lucide.createIcons();
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (user) {
+            document.getElementById('pNameTop').innerText = user.name;
+            document.getElementById('pNameDisplay').innerText = user.name;
+        }
+    </script>
+</body>
+
+</html>

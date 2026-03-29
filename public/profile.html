@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>My Profile - LeaveHub</title>
+    <link rel="stylesheet" href="/style.css" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+    <nav class="nav-bar glass">
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <i data-lucide="layout-dashboard" style="color: var(--primary); width: 24px;"></i>
+            <div class="nav-logo">LeaveHub</div>
+        </div>
+
+        <div class="nav-links">
+            <a href="/dashboard.html" class="nav-link"><i data-lucide="home"></i> Dashboard</a>
+            <a href="/apply.html" class="nav-link"><i data-lucide="send"></i> Apply Leave</a>
+            <a href="/history.html" class="nav-link"><i data-lucide="history"></i> History</a>
+            <a href="/profile.html" class="nav-link active"><i data-lucide="user"></i> Profile</a>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <span id="pNameTop" style="font-size: 0.875rem; font-weight: 500; color: var(--text-muted);"></span>
+            <button id="logoutBtn" class="btn btn-secondary">
+                <i data-lucide="log-out" style="width: 16px; margin-right: 6px;"></i> Logout
+            </button>
+        </div>
+    </nav>
+
+    <main class="dashboard-container anim-fade-in">
+        <div style="margin-bottom: 2rem;">
+            <h1 style="font-size: 1.5rem; font-weight: 700;">Employee Profile</h1>
+            <p style="color: var(--text-muted);">View your personal and organizational details.</p>
+        </div>
+
+        <div class="grid grid-2">
+            <!-- Profile Card -->
+            <section class="card" style="padding: 2.5rem;">
+                <div
+                    style="display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 2rem;">
+                    <div
+                        style="background: var(--bg-main); padding: 1.5rem; border-radius: 9999px; margin-bottom: 1rem; border: 4px solid var(--primary);">
+                        <i data-lucide="user" style="width: 64px; height: 64px; color: var(--primary);"></i>
+                    </div>
+                    <h2 id="pName" style="font-size: 1.5rem; font-weight: 700;">-</h2>
+                    <p id="pDesig" style="color: var(--text-muted); font-weight: 500;">-</p>
+                </div>
+
+                <div style="display: grid; gap: 1rem; border-top: 1px solid var(--border); padding-top: 2rem;">
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <i data-lucide="credit-card" style="color: var(--text-muted); width: 20px;"></i>
+                        <div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">
+                                Employee ID</div>
+                            <div id="pEmpId" style="font-weight: 600;">-</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <i data-lucide="building" style="color: var(--text-muted); width: 20px;"></i>
+                        <div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">
+                                Department</div>
+                            <div id="pDept" style="font-weight: 600;">-</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <i data-lucide="mail" style="color: var(--text-muted); width: 20px;"></i>
+                        <div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Email
+                                Address</div>
+                            <div id="pEmail" style="font-weight: 600;">-</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <i data-lucide="phone" style="color: var(--text-muted); width: 20px;"></i>
+                        <div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Phone
+                                Number</div>
+                            <div id="pPhone" style="font-weight: 600;">-</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <div style="display: grid; gap: 1.5rem;">
+                <section class="card"
+                    style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white;">
+                    <h3 style="font-size: 1.125rem; font-weight: 500; opacity: 0.9; margin-bottom: 0.5rem;">Total Leave
+                        Balance</h3>
+                    <div id="balance" style="font-size: 3rem; font-weight: 800;">-</div>
+                    <p style="opacity: 0.8; font-size: 0.875rem;">Days available for use in the current cycle</p>
+                </section>
+
+                <section class="card">
+                    <h3 style="font-size: 1rem; font-weight: 600; margin-bottom: 1rem;">Account Settings</h3>
+                    <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.5rem;">To update your
+                        profile information, please contact the HR department or the System Administrator.</p>
+                    <button class="btn btn-secondary" style="width: 100%; justify-content: flex-start;">
+                        <i data-lucide="shield" style="width: 16px; margin-right: 10px;"></i> Security Settings
+                    </button>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <!-- Dummy IDs to avoid JS errors -->
+    <div style="display:none">
+        <tbody id="myRows"></tbody>
+        <input id="leaveType"><input id="reason"><input id="startDate"><input id="endDate">
+        <button id="applyBtn"></button>
+        <div id="applyMsg"></div>
+    </div>
+
+    <script src="/assets/employee.js"></script>
+    <script>
+        lucide.createIcons();
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (user) document.getElementById('pNameTop').innerText = user.name;
+    </script>
+</body>
+
+</html>

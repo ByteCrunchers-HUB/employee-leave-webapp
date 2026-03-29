@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Request Leave - LeaveHub</title>
+    <link rel="stylesheet" href="/style.css" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+    <nav class="nav-bar glass">
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <i data-lucide="layout-dashboard" style="color: var(--primary); width: 24px;"></i>
+            <div class="nav-logo">LeaveHub</div>
+        </div>
+
+        <div class="nav-links">
+            <a href="/dashboard" class="nav-link"><i data-lucide="home"></i> Dashboard</a>
+            <a href="/apply" class="nav-link active"><i data-lucide="send"></i> Apply Leave</a>
+            <a href="/history" class="nav-link"><i data-lucide="history"></i> History</a>
+            <a href="/profile" class="nav-link"><i data-lucide="user"></i> Profile</a>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <span id="pNameTop" style="font-size: 0.875rem; font-weight: 500; color: var(--text-muted);"></span>
+            <button id="logoutBtn" class="btn btn-secondary">
+                <i data-lucide="log-out" style="width: 16px; margin-right: 6px;"></i> Logout
+            </button>
+        </div>
+    </nav>
+
+    <main class="dashboard-container anim-fade-in">
+        <div style="margin-bottom: 2rem;">
+            <h1 style="font-size: 1.5rem; font-weight: 700;">Request Leave</h1>
+            <p style="color: var(--text-muted);">Submit a new leave request for approval.</p>
+        </div>
+
+        <section class="card" style="max-width: 800px;">
+            <div class="grid grid-2">
+                <div style="display: grid; gap: 0.5rem;">
+                    <label style="font-size: 0.875rem; font-weight: 500; color: var(--text-muted);">Leave Type</label>
+                    <select id="leaveType" class="input-field">
+                        <option value="Casual">Casual</option>
+                        <option value="Sick">Sick</option>
+                        <option value="Earned">Earned</option>
+                        <option value="Maternity">Maternity</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div style="display: grid; gap: 0.5rem;">
+                    <label style="font-size: 0.875rem; font-weight: 500; color: var(--text-muted);">Reason</label>
+                    <input id="reason" class="input-field" placeholder="Brief reason for leave" />
+                </div>
+                <div style="display: grid; gap: 0.5rem;">
+                    <label style="font-size: 0.875rem; font-weight: 500; color: var(--text-muted);">Start Date</label>
+                    <input id="startDate" type="date" class="input-field" />
+                </div>
+                <div style="display: grid; gap: 0.5rem;">
+                    <label style="font-size: 0.875rem; font-weight: 500; color: var(--text-muted);">End Date</label>
+                    <input id="endDate" type="date" class="input-field" />
+                </div>
+            </div>
+            <div style="margin-top: 1.5rem; display: flex; align-items: center; gap: 1rem;">
+                <button id="applyBtn" class="btn btn-primary" style="padding: 0.75rem 2rem;">Submit Request</button>
+                <div id="applyMsg" style="font-size: 0.875rem; font-weight: 500;"></div>
+            </div>
+        </section>
+
+        <!-- Additional Info Maybe -->
+        <div
+            style="margin-top: 2rem; display: flex; align-items: center; gap: 1rem; color: var(--text-muted); background: rgba(99, 102, 241, 0.05); padding: 1rem; border-radius: var(--radius-md); border: 1px dashed var(--border);">
+            <i data-lucide="info" style="width: 20px;"></i>
+            <p style="font-size: 0.875rem;">Your current available balance: <span id="balance"
+                    style="font-weight: 700; color: var(--primary);">0</span> days. Please ensure you have sufficient
+                balance before applying.</p>
+        </div>
+    </main>
+
+    <!-- Dummy IDs to avoid JS errors -->
+    <div style="display:none">
+        <span id="pEmpId"></span><span id="pName"></span><span id="pDept"></span>
+        <span id="pDesig"></span><span id="pEmail"></span><span id="pPhone"></span>
+        <tbody id="myRows"></tbody>
+    </div>
+
+    <script src="/assets/employee.js"></script>
+    <script>
+        lucide.createIcons();
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (user) document.getElementById('pNameTop').innerText = user.name;
+
+        // Redirect to history after successful submission
+        const originalApplyLeave = applyLeave;
+        applyLeave = async () => {
+            await originalApplyLeave();
+            if (document.getElementById('applyMsg').textContent === 'Submitted.') {
+                setTimeout(() => location.href = '/history', 1000);
+            }
+        };
+        document.getElementById('applyBtn').addEventListener('click', applyLeave);
+    </script>
+</body>
+
+</html>
