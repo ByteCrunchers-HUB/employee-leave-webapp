@@ -24,26 +24,22 @@ const PORT = process.env.PORT || 5000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-let mongoUri = process.env.MONGODB_URI || '';
-mongoUri = mongoUri.replace(/^["']|["']$/g, '').trim(); // Remove accidental quotes and spaces
-
-let sessionStore;
-if (mongoUri) {
-  try {
-    sessionStore = MongoStore.create({
-      mongoUrl: mongoUri,
-      dbName: process.env.MONGODB_DB ? process.env.MONGODB_DB.replace(/^["']|["']$/g, '').trim() : undefined
-    });
-  } catch (err) {
-    console.error('Failed to initialize MongoStore:', err.message);
-  }
-}
+// Lazily connect to DB
+const clientP = connectDB().then(async () => {
+  await ensureAdmin();
+  const mongoose = require('mongoose');
+  return mongoose.connection.getClient();
+}).catch(err => {
+  console.error('DB Connection Failed:', err.message);
+});
 
 app.use(session({
   secret: process.env.SESSION_SECRET || 'dev_secret',
   resave: false,
   saveUninitialized: false,
-  store: sessionStore,
+  store: MongoStore.create({
+    clientPromise: clientP
+  }),
   cookie: { httpOnly: true }
 }));
 
@@ -333,9 +329,7 @@ app.get('/admin/queue', (req, res) => res.sendFile(path.join(__dirname, 'public'
 app.get('/admin/employees', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin-employees.html')));
 app.get('/admin/add', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin-add.html')));
 
-connectDB()
-  .then(ensureAdmin)
-  .catch((err) => console.error('Failed to start DB:', err.message));
+// connectDB handles initialization above now
 
 if (process.env.NODE_ENV !== 'production') {
   app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
