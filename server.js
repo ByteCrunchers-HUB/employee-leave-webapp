@@ -1,5 +1,11 @@
 const dns = require('dns');
-dns.setServers(['8.8.8.8', '1.1.1.1']);
+try {
+  if (process.env.NODE_ENV !== 'production') {
+    dns.setServers(['8.8.8.8', '1.1.1.1']);
+  }
+} catch (err) {
+  // Ignore DNS override errors in restricted environments like Vercel Lambda
+}
 
 const express = require('express');
 const session = require('express-session');
