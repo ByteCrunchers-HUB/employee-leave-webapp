@@ -304,9 +304,10 @@ app.get('/admin/add', (req, res) => res.sendFile(path.join(__dirname, 'public', 
 
 connectDB()
   .then(ensureAdmin)
-  .then(() => {
-    app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
-  })
-  .catch((err) => {
-    console.error('Failed to start:', err.message);
-  });
+  .catch((err) => console.error('Failed to start DB:', err.message));
+
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+}
+
+module.exports = app;
