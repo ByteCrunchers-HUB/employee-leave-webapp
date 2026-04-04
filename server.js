@@ -9,6 +9,7 @@ try {
 
 const express = require('express');
 const session = require('express-session');
+const MongoStore = require('connect-mongo');
 const bcrypt = require('bcryptjs');
 const path = require('path');
 const { connectDB, Employee, LeaveRequest, isValidObjectId } = require('./db');
@@ -25,6 +26,10 @@ app.use(session({
   secret: process.env.SESSION_SECRET || 'dev_secret',
   resave: false,
   saveUninitialized: false,
+  store: process.env.MONGODB_URI ? MongoStore.create({
+    mongoUrl: process.env.MONGODB_URI,
+    dbName: process.env.MONGODB_DB || undefined
+  }) : undefined,
   cookie: { httpOnly: true }
 }));
 
