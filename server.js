@@ -14,22 +14,36 @@ const bcrypt = require('bcryptjs');
 const path = require('path');
 const { connectDB, Employee, LeaveRequest, isValidObjectId } = require('./db');
 
-require('dotenv').config({ path: path.join(__dirname, '.env') });
+try {
+  require('dotenv').config({ path: path.join(__dirname, '.env') });
+} catch (e) {}
 
 const app = express();
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+let mongoUri = process.env.MONGODB_URI || '';
+mongoUri = mongoUri.replace(/^["']|["']$/g, '').trim(); // Remove accidental quotes and spaces
+
+let sessionStore;
+if (mongoUri) {
+  try {
+    sessionStore = MongoStore.create({
+      mongoUrl: mongoUri,
+      dbName: process.env.MONGODB_DB ? process.env.MONGODB_DB.replace(/^["']|["']$/g, '').trim() : undefined
+    });
+  } catch (err) {
+    console.error('Failed to initialize MongoStore:', err.message);
+  }
+}
 
 app.use(session({
   secret: process.env.SESSION_SECRET || 'dev_secret',
   resave: false,
   saveUninitialized: false,
-  store: process.env.MONGODB_URI ? MongoStore.create({
-    mongoUrl: process.env.MONGODB_URI,
-    dbName: process.env.MONGODB_DB || undefined
-  }) : undefined,
+  store: sessionStore,
   cookie: { httpOnly: true }
 }));
 

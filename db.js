@@ -37,11 +37,15 @@ const LeaveRequest = mongoose.models.LeaveRequest || mongoose.model('LeaveReques
 async function connectDB() {
   if (isConnected) return;
 
-  const uri = process.env.MONGODB_URI;
+  let uri = process.env.MONGODB_URI || '';
+  uri = uri.replace(/^["']|["']$/g, '').trim();
   if (!uri) throw new Error('Missing MONGODB_URI in .env');
 
+  let dbName = process.env.MONGODB_DB || '';
+  dbName = dbName.replace(/^["']|["']$/g, '').trim();
+
   await mongoose.connect(uri, {
-    dbName: process.env.MONGODB_DB || undefined
+    dbName: dbName || undefined
   });
 
   isConnected = true;
