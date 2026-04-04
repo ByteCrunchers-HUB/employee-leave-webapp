@@ -1,0 +1,7 @@
+node_modules/
+.env
+mongo_backup/
+local_db/
+db/
+mongo_error.log
+~$*.docx

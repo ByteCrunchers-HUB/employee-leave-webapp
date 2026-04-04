@@ -46,6 +46,11 @@
             <input id="phone" class="input-field" placeholder="Phone Number" />
             <input id="regEmail" class="input-field" placeholder="Email" />
             <input id="regPassword" type="password" class="input-field" placeholder="Password" />
+            <select id="regRole" class="input-field" style="color: var(--text-muted); cursor: pointer;">
+                <option value="EMP">Register as Employee</option>
+                <option value="ADMIN">Register as Admin</option>
+            </select>
+            <input id="adminSecret" type="password" class="input-field" placeholder="Admin Secret Password" style="display: none;" />
             <button id="registerBtn" class="btn btn-success" style="width: 100%;">
                 <i data-lucide="user-plus" style="width: 18px; margin-right: 8px;"></i> Create Account
             </button>
@@ -63,20 +68,20 @@
     lucide.createIcons();
     const loginSec = document.getElementById('loginSection');
     const registerSec = document.getElementById('registerSection');
-    const msg = document.getElementById('msg');
+    const msgEl = document.getElementById('msg');
 
     document.getElementById('showRegister').addEventListener('click', (e) => {
         e.preventDefault();
         loginSec.style.display = 'none';
         registerSec.style.display = 'block';
-        msg.innerText = '';
+        if(msgEl) msgEl.innerText = '';
     });
 
     document.getElementById('showLogin').addEventListener('click', (e) => {
         e.preventDefault();
         registerSec.style.display = 'none';
         loginSec.style.display = 'block';
-        msg.innerText = '';
+        if(msgEl) msgEl.innerText = '';
     });
   </script>
 </body>

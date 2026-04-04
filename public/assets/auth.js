@@ -32,6 +32,9 @@ async function register() {
   const phone = document.getElementById('phone').value.trim();
   const email = document.getElementById('regEmail').value.trim();
   const password = document.getElementById('regPassword').value;
+  const role = document.getElementById('regRole') ? document.getElementById('regRole').value : 'EMP';
+  const adminSecret = document.getElementById('adminSecret') ? document.getElementById('adminSecret').value : '';
+
   if (!employee_id || !name || !department || !designation || !phone || !email || !password) {
     return msg('Fill all registration fields.');
   }
@@ -39,12 +42,18 @@ async function register() {
   const res = await fetch('/api/register', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ employee_id, name, department, designation, phone, email, password })
+    body: JSON.stringify({ employee_id, name, department, designation, phone, email, password, role, adminSecret })
   });
   const data = await res.json();
   if (!res.ok) return msg(data.error || 'Registration failed.');
   msg('Registered. Now login.', false);
 }
 
-document.getElementById('loginBtn').addEventListener('click', login);
-document.getElementById('registerBtn').addEventListener('click', register);
+document.getElementById('loginBtn')?.addEventListener('click', login);
+document.getElementById('registerBtn')?.addEventListener('click', register);
+document.getElementById('regRole')?.addEventListener('change', (e) => {
+  const secretField = document.getElementById('adminSecret');
+  if (secretField) {
+    secretField.style.display = e.target.value === 'ADMIN' ? 'block' : 'none';
+  }
+});

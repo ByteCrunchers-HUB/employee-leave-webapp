@@ -1,3 +1,6 @@
+const dns = require('dns');
+dns.setServers(['8.8.8.8', '1.1.1.1']);
+
 const express = require('express');
 const session = require('express-session');
 const bcrypt = require('bcrypt');
@@ -86,9 +89,18 @@ function serializeLeaveRequest(doc) {
 }
 
 app.post('/api/register', async (req, res) => {
-  const { employee_id, name, department, designation, email, phone, password } = req.body;
+  const { employee_id, name, department, designation, email, phone, password, role, adminSecret } = req.body;
   if (!employee_id || !name || !department || !designation || !email || !phone || !password) {
     return res.status(400).json({ error: 'All fields are required.' });
+  }
+
+  let assignedRole = 'EMP';
+  if (role === 'ADMIN') {
+    if (adminSecret === 'password123') {
+      assignedRole = 'ADMIN';
+    } else {
+      return res.status(403).json({ error: 'User not allowed to make admin account' });
+    }
   }
 
   const hash = await bcrypt.hash(password, 10);
@@ -107,7 +119,7 @@ app.post('/api/register', async (req, res) => {
       email,
       phone,
       password_hash: hash,
-      role: 'EMP',
+      role: assignedRole,
       remaining_days: 20
     });
 
