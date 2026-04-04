@@ -172,7 +172,13 @@ app.post('/api/login', async (req, res) => {
     role: user.role
   };
 
-  res.json({ ok: true, role: user.role });
+  req.session.save((err) => {
+    if (err) {
+      console.error('Session save error:', err);
+      return res.status(500).json({ error: 'Login completely failed' });
+    }
+    res.json({ ok: true, role: user.role });
+  });
 });
 
 app.post('/api/logout', (req, res) => {
