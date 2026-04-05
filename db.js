@@ -39,17 +39,24 @@ async function connectDB() {
 
   let uri = process.env.MONGODB_URI || '';
   uri = uri.replace(/^["']|["']$/g, '').trim();
-  if (!uri) throw new Error('Missing MONGODB_URI in .env');
+  if (!uri) {
+    console.error('--- ERROR: MONGODB_URI is missing in environment variables! ---');
+    throw new Error('Missing MONGODB_URI');
+  }
 
   let dbName = process.env.MONGODB_DB || '';
   dbName = dbName.replace(/^["']|["']$/g, '').trim();
 
+  console.log(`Connecting to MongoDB... (URI starts with: ${uri.substring(0, 15)}...)`);
+  
   await mongoose.connect(uri, {
     dbName: dbName || undefined
   });
 
+  console.log('Successfully connected to MongoDB.');
   isConnected = true;
 }
+
 
 module.exports = {
   connectDB,

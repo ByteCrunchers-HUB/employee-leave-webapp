@@ -30,8 +30,10 @@ const clientP = connectDB().then(async () => {
   const mongoose = require('mongoose');
   return mongoose.connection.getClient();
 }).catch(err => {
-  console.error('DB Connection Failed:', err.message);
+  console.error('CRITICAL: DB Connection Failed!', err.stack);
+  process.exit(1); // Force failure so Render logs the error clearly
 });
+
 
 app.use(session({
   secret: process.env.SESSION_SECRET || 'dev_secret',
@@ -331,8 +333,7 @@ app.get('/admin/add', (req, res) => res.sendFile(path.join(__dirname, 'public', 
 
 // connectDB handles initialization above now
 
-if (process.env.NODE_ENV !== 'production') {
-  app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
-}
+app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+
 
 module.exports = app;
