@@ -14,9 +14,43 @@ async function loadEmployees() {
       <td><span style="color: var(--text-muted);">${e.designation}</span></td>
       <td><a href="mailto:${e.email}" style="color: var(--primary); text-decoration: none;">${e.email}</a></td>
       <td style="font-family: monospace;">${e.phone}</td>
+      <td><span style="background: #eef2ff; color: #4338ca; padding: 2px 8px; border-radius: 4px; font-weight: 700;">${e.remaining_days}</span></td>
+      <td>
+        <button class="edit-bal btn btn-secondary" style="padding: 4px 8px; font-size: 0.7rem;" data-id="${e._id || e.id}" data-name="${e.name}" data-balance="${e.remaining_days}">
+          <i data-lucide="edit-2" style="width: 12px; margin-right: 4px;"></i> Edit Balance
+        </button>
+      </td>
     `;
     tbody.appendChild(tr);
   });
+
+  if (window.lucide) lucide.createIcons();
+
+  document.querySelectorAll('.edit-bal').forEach(btn => {
+    btn.addEventListener('click', () => updateBalance(btn.dataset.id, btn.dataset.name, btn.dataset.balance));
+  });
+}
+
+async function updateBalance(id, name, current) {
+  const newBal = prompt(`Enter new leave balance for ${name}:`, current);
+  if (newBal === null || newBal === "" || isNaN(newBal)) return;
+
+  try {
+    const res = await fetch(`/api/admin/employees/${id}/balance`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ amount: Number(newBal) })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      alert('Balance updated successfully.');
+      loadEmployees();
+    } else {
+      alert(data.error || 'Update failed.');
+    }
+  } catch (err) {
+    alert('Error connecting to server.');
+  }
 }
 
 async function addEmployee() {

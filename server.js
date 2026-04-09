@@ -229,10 +229,26 @@ app.post('/api/admin/employees', requireAdmin, async (req, res) => {
 app.get('/api/admin/employees', requireAdmin, async (req, res) => {
   const rows = await Employee.find(
     { role: 'EMP' },
-    'employee_id name department designation email phone'
+    'employee_id name department designation email phone remaining_days'
   ).sort({ name: 1 }).lean();
 
   res.json({ rows });
+});
+
+app.post('/api/admin/employees/:id/balance', requireAdmin, async (req, res) => {
+  const id = req.params.id;
+  const { amount } = req.body;
+  
+  if (amount === undefined || isNaN(Number(amount))) {
+    return res.status(400).json({ error: 'Valid amount is required.' });
+  }
+
+  try {
+    await Employee.updateOne({ _id: id }, { $set: { remaining_days: Number(amount) } });
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: 'Failed to update balance.' });
+  }
 });
 
 app.post('/api/leave/apply', requireAuth, async (req, res) => {
@@ -261,8 +277,8 @@ app.post('/api/leave/apply', requireAuth, async (req, res) => {
     let is_lop = false;
     let effective_days = days;
     
-    // LOP Logic: If leaves are > 20 (balance exhausted)
-    if (days > employee.remaining_days) {
+    // LOP Logic: If leaves are > balance OR if user explicitly chooses LOP type
+    if (days > employee.remaining_days || leave_type === 'LOP') {
       is_lop = true;
     }
 
@@ -287,7 +303,7 @@ app.post('/api/leave/apply', requireAuth, async (req, res) => {
 app.get('/api/leave/mine', requireAuth, async (req, res) => {
   const docs = await LeaveRequest.find(
     { employee: req.session.user.id },
-    'leave_code leave_type start_date end_date days reason status created_at decided_at'
+    'leave_code leave_type start_date end_date days reason status created_at decided_at is_lop'
   ).sort({ created_at: -1 }).lean();
 
   const rows = docs.map(serializeLeaveRequest);
@@ -297,7 +313,7 @@ app.get('/api/leave/mine', requireAuth, async (req, res) => {
 app.get('/api/leave/stack', requireAdmin, async (req, res) => {
   const docs = await LeaveRequest.find(
     {},
-    'leave_code leave_type start_date end_date days reason status created_at employee'
+    'leave_code leave_type start_date end_date days reason status created_at employee is_lop'
   ).populate('employee', 'employee_id name').sort({ created_at: -1 }).lean();
 
   const rows = docs.map((doc) => ({
