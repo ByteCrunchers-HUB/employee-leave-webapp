@@ -67,22 +67,28 @@ async function applyLeave() {
   const end_date = endEl.value;
   const reason = reasonEl.value.trim();
 
-  const res = await fetch('/api/leave/apply', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ leave_type, start_date, end_date, reason })
-  });
-  const data = await res.json();
-  if (!res.ok) {
-    if (msgEl) msgEl.textContent = data.error || 'Apply failed.';
-    if (msgEl) msgEl.style.color = 'var(--error)';
-    return;
+  try {
+    const res = await fetch('/api/leave/apply', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ leave_type, start_date, end_date, reason })
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      if (msgEl) msgEl.textContent = data.error || 'Apply failed.';
+      if (msgEl) msgEl.style.color = 'var(--error)';
+      alert(data.error || 'Apply failed.');
+      return;
+    }
+    if (msgEl) msgEl.textContent = 'Submitted.';
+    if (msgEl) msgEl.style.color = 'var(--success)';
+    alert('Leave request submitted successfully!');
+    reasonEl.value = '';
+    await loadMe();
+    await loadMine();
+  } catch (err) {
+    alert('Connectivity issue. Please check your internet.');
   }
-  if (msgEl) msgEl.textContent = 'Submitted.';
-  if (msgEl) msgEl.style.color = 'var(--success)';
-  reasonEl.value = '';
-  await loadMe();
-  await loadMine();
 }
 
 async function logout() {

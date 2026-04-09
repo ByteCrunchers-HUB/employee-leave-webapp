@@ -115,23 +115,50 @@ async function loadStack() {
 
 async function approve(id) {
   if(!confirm('Approve this leave?')) return;
-  const res = await fetch(`/api/leave/${id}/approve`, { method: 'POST' });
-  await res.json();
-  loadStack();
+  try {
+    const res = await fetch(`/api/leave/${id}/approve`, { method: 'POST' });
+    const data = await res.json();
+    if (!res.ok) {
+      alert(data.error || 'Approval failed.');
+    } else {
+      alert('Leave Approved successfully!');
+    }
+    loadStack();
+  } catch (err) {
+    alert('Network error. Please try again.');
+  }
 }
 
 async function reject(id) {
   if(!confirm('Reject this leave?')) return;
-  const res = await fetch(`/api/leave/${id}/reject`, { method: 'POST' });
-  await res.json();
-  loadStack();
+  try {
+    const res = await fetch(`/api/leave/${id}/reject`, { method: 'POST' });
+    const data = await res.json();
+    if (!res.ok) {
+      alert(data.error || 'Rejection failed.');
+    } else {
+      alert('Leave Rejected.');
+    }
+    loadStack();
+  } catch (err) {
+    alert('Network error.');
+  }
 }
 
 async function revert(id) {
-  if(!confirm('Are you sure you want to revert this decision? The leave will move back to pending status.')) return;
-  const res = await fetch(`/api/leave/${id}/revert`, { method: 'POST' });
-  await res.json();
-  loadStack();
+  if(!confirm('Are you sure you want to revert this decision?')) return;
+  try {
+    const res = await fetch(`/api/leave/${id}/revert`, { method: 'POST' });
+    const data = await res.json();
+    if (!res.ok) {
+      alert(data.error || 'Revert failed.');
+    } else {
+      alert('Decision reverted.');
+    }
+    loadStack();
+  } catch (err) {
+    alert('Network error.');
+  }
 }
 
 async function logout() {
