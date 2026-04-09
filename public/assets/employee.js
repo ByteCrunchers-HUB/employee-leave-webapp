@@ -35,12 +35,15 @@ async function loadMine() {
 
   tbody.innerHTML = '';
   data.rows.forEach(r => {
-    const statusClass = r.status.toLowerCase().includes('approved') && !r.status.toLowerCase().includes('not_approved') ? 'status-approved' :
-      (r.status.toLowerCase().includes('not_approved') ? 'status-pending' : 'status-rejected');
+    const statusClass = r.status === 'APPROVED' ? 'status-approved' :
+      (r.status === 'REJECTED' ? 'status-rejected' : 'status-pending');
+    
+    const lopBadge = r.is_lop ? `<span style="background: #fee2e2; color: #b91c1c; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; margin-left: 5px;">LOP</span>` : '';
+
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td><code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">${r.leave_code}</code></td>
-      <td><span style="font-weight: 500;">${r.leave_type}</span></td>
+      <td><span style="font-weight: 500;">${r.leave_type}${lopBadge}</span></td>
       <td style="color: var(--text-muted);">${r.start_date} → ${r.end_date}</td>
       <td><span style="background: #eef2ff; color: #4338ca; padding: 2px 8px; border-radius: 4px; font-weight: 600;">${r.days}</span></td>
       <td style="max-width: 200px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${r.reason}</td>

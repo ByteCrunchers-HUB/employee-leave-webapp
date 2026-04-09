@@ -23,7 +23,8 @@ const leaveRequestSchema = new mongoose.Schema({
   end_date: { type: Date, required: true },
   days: { type: Number, required: true },
   reason: { type: String, required: true },
-  status: { type: String, enum: ['NOT_APPROVED', 'APPROVED'], default: 'NOT_APPROVED' },
+  status: { type: String, enum: ['NOT_APPROVED', 'APPROVED', 'REJECTED'], default: 'NOT_APPROVED' },
+  is_lop: { type: Boolean, default: false },
   created_at: { type: Date, default: Date.now },
   decided_at: { type: Date, default: null },
   decided_by: { type: mongoose.Schema.Types.ObjectId, ref: 'Employee', default: null }

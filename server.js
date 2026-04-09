@@ -106,6 +106,7 @@ function serializeLeaveRequest(doc) {
     days: doc.days,
     reason: doc.reason,
     status: doc.status,
+    is_lop: doc.is_lop || false,
     created_at: doc.created_at || null,
     decided_at: doc.decided_at || null
   };
@@ -243,7 +244,14 @@ app.post('/api/leave/apply', requireAuth, async (req, res) => {
   try {
     const employee = await Employee.findById(req.session.user.id, 'remaining_days').lean();
     if (!employee) return res.status(404).json({ error: 'Employee not found.' });
-    if (days > employee.remaining_days) return res.status(400).json({ error: 'Insufficient leave balance.' });
+
+    let is_lop = false;
+    let effective_days = days;
+    
+    // LOP Logic: If leaves are > 20 (balance exhausted)
+    if (days > employee.remaining_days) {
+      is_lop = true;
+    }
 
     await LeaveRequest.create({
       leave_code: makeLeaveCode(),
@@ -253,7 +261,8 @@ app.post('/api/leave/apply', requireAuth, async (req, res) => {
       end_date,
       days,
       reason,
-      status: 'NOT_APPROVED'
+      status: 'NOT_APPROVED',
+      is_lop
     });
 
     res.json({ ok: true });
@@ -292,31 +301,86 @@ app.post('/api/leave/:id/approve', requireAdmin, async (req, res) => {
   if (!isValidObjectId(id)) return res.status(404).json({ error: 'Request not found.' });
 
   try {
-    const leave = await LeaveRequest.findOne({ _id: id, status: 'NOT_APPROVED' }, 'employee days status').lean();
+    const leave = await LeaveRequest.findOne({ _id: id, status: 'NOT_APPROVED' }, 'employee days status is_lop').lean();
     if (!leave) {
       return res.status(404).json({ error: 'Request not found.' });
     }
 
-    const balanceUpdate = await Employee.updateOne(
-      { _id: leave.employee, remaining_days: { $gte: leave.days } },
-      { $inc: { remaining_days: -leave.days } }
-    );
-    if (balanceUpdate.modifiedCount === 0) {
-      return res.status(400).json({ error: 'Insufficient balance at approval.' });
+    if (!leave.is_lop) {
+      // Regular leave: Check balance and deduct
+      const balanceUpdate = await Employee.updateOne(
+        { _id: leave.employee, remaining_days: { $gte: leave.days } },
+        { $inc: { remaining_days: -leave.days } }
+      );
+      if (balanceUpdate.modifiedCount === 0) {
+        return res.status(400).json({ error: 'Insufficient balance at approval. Consider marking as LOP or rejecting.' });
+      }
     }
 
     const approvalUpdate = await LeaveRequest.updateOne(
       { _id: id, status: 'NOT_APPROVED' },
       { $set: { status: 'APPROVED', decided_at: new Date(), decided_by: req.session.user.id } }
     );
+    
     if (approvalUpdate.modifiedCount === 0) {
-      await Employee.updateOne({ _id: leave.employee }, { $inc: { remaining_days: leave.days } });
-      return res.status(400).json({ error: 'Already approved.' });
+      // Rollback balance if necessary (though unlikely race condition here)
+      if(!leave.is_lop) {
+        await Employee.updateOne({ _id: leave.employee }, { $inc: { remaining_days: leave.days } });
+      }
+      return res.status(400).json({ error: 'Already decided.' });
     }
 
     res.json({ ok: true });
   } catch (e) {
     res.status(500).json({ error: 'Approval failed.' });
+  }
+});
+
+app.post('/api/leave/:id/reject', requireAdmin, async (req, res) => {
+  const id = req.params.id;
+  if (!isValidObjectId(id)) return res.status(404).json({ error: 'Request not found.' });
+
+  try {
+    const update = await LeaveRequest.updateOne(
+      { _id: id, status: 'NOT_APPROVED' },
+      { $set: { status: 'REJECTED', decided_at: new Date(), decided_by: req.session.user.id } }
+    );
+    
+    if (update.modifiedCount === 0) {
+      return res.status(400).json({ error: 'Already decided.' });
+    }
+
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: 'Rejection failed.' });
+  }
+});
+
+app.post('/api/leave/:id/revert', requireAdmin, async (req, res) => {
+  const id = req.params.id;
+  if (!isValidObjectId(id)) return res.status(404).json({ error: 'Request not found.' });
+
+  try {
+    const leave = await LeaveRequest.findById(id, 'employee days status is_lop').lean();
+    if (!leave) return res.status(404).json({ error: 'Request not found.' });
+    if (leave.status === 'NOT_APPROVED') return res.status(400).json({ error: 'Request is already pending.' });
+
+    // If it was APPROVED and not LOP, we must return the days back to the employee
+    if (leave.status === 'APPROVED' && !leave.is_lop) {
+      await Employee.updateOne(
+        { _id: leave.employee },
+        { $inc: { remaining_days: leave.days } }
+      );
+    }
+
+    await LeaveRequest.updateOne(
+      { _id: id },
+      { $set: { status: 'NOT_APPROVED', decided_at: null, decided_by: null } }
+    );
+
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: 'Revert failed.' });
   }
 });
 

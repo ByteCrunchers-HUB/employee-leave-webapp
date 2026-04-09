@@ -243,6 +243,17 @@ tr:hover td {
     color: #991b1b;
 }
 
+.portal-tab.active {
+    background: white;
+    box-shadow: var(--shadow-sm);
+    color: var(--primary);
+}
+
+.portal-tab:not(.active) {
+    color: var(--text-muted);
+    background: transparent;
+}
+
 /* Responsive Grid */
 .grid {
     display: grid;

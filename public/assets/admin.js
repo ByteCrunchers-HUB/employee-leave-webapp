@@ -71,20 +71,30 @@ async function loadStack() {
   tbody.innerHTML = '';
 
   data.rows.forEach(r => {
-    const canApprove = r.status === 'NOT_APPROVED';
-    const statusClass = r.status.toLowerCase().includes('approved') && !r.status.toLowerCase().includes('not') ? 'status-approved' :
-      (r.status.toLowerCase().includes('not_approved') ? 'status-pending' : 'status-rejected');
+    const canDecide = r.status === 'NOT_APPROVED';
+    const statusClass = r.status === 'APPROVED' ? 'status-approved' :
+      (r.status === 'REJECTED' ? 'status-rejected' : 'status-pending');
+    
+    const lopBadge = r.is_lop ? `<span style="background: #fee2e2; color: #b91c1c; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; margin-left: 5px;">LOP</span>` : '';
+    
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td><code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">${r.leave_code}</code></td>
       <td><span style="font-weight: 600;">${r.name}</span> <br><small style="color: grey;">${r.employee_id}</small></td>
-      <td><span style="font-weight: 500;">${r.leave_type}</span></td>
+      <td><span style="font-weight: 500;">${r.leave_type} ${lopBadge}</span></td>
       <td style="color: var(--text-muted); font-size: 0.8rem;">${r.start_date} → <br>${r.end_date}</td>
       <td><span style="background: #eef2ff; color: #4338ca; padding: 2px 8px; border-radius: 4px; font-weight: 600;">${r.days}</span></td>
       <td style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${r.reason}</td>
       <td><span class="status-badge ${statusClass}">${r.status}</span></td>
       <td>
-        ${canApprove ? `<button class="approve btn btn-success" style="padding: 4px 12px; font-size: 0.75rem;" data-id="${r.id}"><i data-lucide="check" style="width: 12px; margin-right: 4px;"></i> Approve</button>` : '-'}
+        <div style="display: flex; gap: 5px;">
+          ${canDecide ? `
+            <button class="approve btn btn-success" style="padding: 4px 8px; font-size: 0.7rem; white-space: nowrap;" data-id="${r.id}"><i data-lucide="check" style="width: 12px;"></i> Approve</button>
+            <button class="reject btn btn-error" style="padding: 4px 8px; font-size: 0.7rem; white-space: nowrap; background: var(--error);" data-id="${r.id}"><i data-lucide="x" style="width: 12px;"></i> Reject</button>
+          ` : `
+            <button class="revert btn btn-secondary" style="padding: 4px 8px; font-size: 0.7rem; white-space: nowrap;" data-id="${r.id}"><i data-lucide="rotate-ccw" style="width: 12px;"></i> Revert</button>
+          `}
+        </div>
       </td>
     `;
     tbody.appendChild(tr);
@@ -95,10 +105,31 @@ async function loadStack() {
   document.querySelectorAll('.approve').forEach(btn => {
     btn.addEventListener('click', () => approve(btn.dataset.id));
   });
+  document.querySelectorAll('.reject').forEach(btn => {
+    btn.addEventListener('click', () => reject(btn.dataset.id));
+  });
+  document.querySelectorAll('.revert').forEach(btn => {
+    btn.addEventListener('click', () => revert(btn.dataset.id));
+  });
 }
 
 async function approve(id) {
+  if(!confirm('Approve this leave?')) return;
   const res = await fetch(`/api/leave/${id}/approve`, { method: 'POST' });
+  await res.json();
+  loadStack();
+}
+
+async function reject(id) {
+  if(!confirm('Reject this leave?')) return;
+  const res = await fetch(`/api/leave/${id}/reject`, { method: 'POST' });
+  await res.json();
+  loadStack();
+}
+
+async function revert(id) {
+  if(!confirm('Are you sure you want to revert this decision? The leave will move back to pending status.')) return;
+  const res = await fetch(`/api/leave/${id}/revert`, { method: 'POST' });
   await res.json();
   loadStack();
 }
