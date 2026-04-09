@@ -95,9 +95,23 @@
         // Redirect to history after successful submission
         const originalApplyLeave = applyLeave;
         applyLeave = async () => {
-            await originalApplyLeave();
-            if (document.getElementById('applyMsg').textContent === 'Submitted.') {
-                setTimeout(() => location.href = '/history', 1000);
+            const btn = document.getElementById('applyBtn');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `<i data-lucide="loader-2" class="anim-spin" style="width: 18px; margin-right: 8px;"></i> Processing...`;
+            if(window.lucide) lucide.createIcons();
+            
+            try {
+                await originalApplyLeave();
+                if (document.getElementById('applyMsg').textContent === 'Submitted.') {
+                    setTimeout(() => location.href = '/history', 1000);
+                } else {
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                }
+            } catch (err) {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
             }
         };
         document.getElementById('applyBtn').addEventListener('click', applyLeave);

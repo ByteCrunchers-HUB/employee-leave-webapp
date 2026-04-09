@@ -245,6 +245,18 @@ app.post('/api/leave/apply', requireAuth, async (req, res) => {
     const employee = await Employee.findById(req.session.user.id, 'remaining_days').lean();
     if (!employee) return res.status(404).json({ error: 'Employee not found.' });
 
+    // Check for duplicate pending/approved request for same dates
+    const duplicate = await LeaveRequest.findOne({
+      employee: req.session.user.id,
+      start_date,
+      end_date,
+      status: { $in: ['NOT_APPROVED', 'APPROVED'] }
+    }).lean();
+
+    if (duplicate) {
+      return res.status(409).json({ error: 'A request for these dates already exists.' });
+    }
+
     let is_lop = false;
     let effective_days = days;
     
