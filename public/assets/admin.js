@@ -157,7 +157,8 @@ async function approve(id) {
     } else {
       alert('Leave Approved successfully!');
     }
-    loadStack();
+    await loadStack();
+    await loadEmployees();
   } catch (err) {
     alert('Network error. Please try again.');
   }
@@ -173,7 +174,7 @@ async function reject(id) {
     } else {
       alert('Leave Rejected.');
     }
-    loadStack();
+    await loadStack();
   } catch (err) {
     alert('Network error.');
   }
@@ -189,7 +190,8 @@ async function revert(id) {
     } else {
       alert('Decision reverted.');
     }
-    loadStack();
+    await loadStack();
+    await loadEmployees();
   } catch (err) {
     alert('Network error.');
   }

@@ -1,3 +1,5 @@
+let leaveSubmissionInFlight = false;
+
 async function loadMe() {
   const res = await fetch('/api/me', { cache: 'no-store' });
   if (!res.ok) return location.href = '/';
@@ -54,6 +56,8 @@ async function loadMine() {
 }
 
 async function applyLeave() {
+  if (leaveSubmissionInFlight) return;
+
   const typeEl = document.getElementById('leaveType');
   const startEl = document.getElementById('startDate');
   const endEl = document.getElementById('endDate');
@@ -66,6 +70,8 @@ async function applyLeave() {
   const start_date = startEl.value;
   const end_date = endEl.value;
   const reason = reasonEl.value.trim();
+
+  leaveSubmissionInFlight = true;
 
   try {
     const res = await fetch('/api/leave/apply', {
@@ -80,14 +86,16 @@ async function applyLeave() {
       alert(data.error || 'Apply failed.');
       return;
     }
-    if (msgEl) msgEl.textContent = 'Submitted.';
+    if (msgEl) msgEl.textContent = data.message || 'Submitted.';
     if (msgEl) msgEl.style.color = 'var(--success)';
-    alert('Leave request submitted successfully!');
+    alert(data.message || 'Leave request submitted successfully!');
     reasonEl.value = '';
     await loadMe();
     await loadMine();
   } catch (err) {
     alert('Connectivity issue. Please check your internet.');
+  } finally {
+    leaveSubmissionInFlight = false;
   }
 }
 

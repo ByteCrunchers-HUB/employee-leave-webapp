@@ -11,6 +11,7 @@ const express = require('express');
 const session = require('express-session');
 const { MongoStore } = require('connect-mongo');
 const bcrypt = require('bcryptjs');
+const mongoose = require('mongoose');
 const path = require('path');
 const { connectDB, Employee, LeaveRequest, isValidObjectId } = require('./db');
 
@@ -255,6 +256,8 @@ app.post('/api/leave/apply', requireAuth, async (req, res) => {
   const { leave_type, start_date, end_date, reason } = req.body;
   if (!leave_type || !start_date || !end_date || !reason) return res.status(400).json({ error: 'All fields required.' });
 
+  const startDateValue = new Date(start_date);
+  const endDateValue = new Date(end_date);
   const days = daysBetween(start_date, end_date);
   if (isNaN(days) || days <= 0) return res.status(400).json({ error: 'Invalid date range.' });
 
@@ -262,40 +265,42 @@ app.post('/api/leave/apply', requireAuth, async (req, res) => {
     const employee = await Employee.findById(req.session.user.id, 'remaining_days').lean();
     if (!employee) return res.status(404).json({ error: 'Employee not found.' });
 
-    // Check for duplicate pending/approved request for same dates
+    // Block any overlapping active leave request for the same employee.
     const duplicate = await LeaveRequest.findOne({
       employee: req.session.user.id,
-      start_date,
-      end_date,
+      start_date: { $lte: endDateValue },
+      end_date: { $gte: startDateValue },
       status: { $in: ['NOT_APPROVED', 'APPROVED'] }
     }).lean();
 
     if (duplicate) {
-      return res.status(409).json({ error: 'A request for these dates already exists.' });
+      return res.status(409).json({ error: 'You already have a pending or approved leave request in this date range.' });
     }
 
-    let is_lop = false;
-    let effective_days = days;
-    
-    // LOP Logic: If leaves are > balance OR if user explicitly chooses LOP type
-    if (days > employee.remaining_days || leave_type === 'LOP') {
-      is_lop = true;
-    }
+    const is_lop = days > employee.remaining_days || leave_type === 'LOP' || employee.remaining_days <= 0;
+    const storedLeaveType = is_lop ? 'LOP' : leave_type;
 
     await LeaveRequest.create({
       leave_code: makeLeaveCode(),
       employee: req.session.user.id,
-      leave_type,
-      start_date,
-      end_date,
+      leave_type: storedLeaveType,
+      start_date: startDateValue,
+      end_date: endDateValue,
       days,
       reason,
       status: 'NOT_APPROVED',
       is_lop
     });
 
-    res.json({ ok: true });
+    res.json({
+      ok: true,
+      is_lop,
+      message: is_lop
+        ? 'Leave submitted as Loss of Pay (LOP) because available balance is not enough.'
+        : 'Leave submitted successfully.'
+    });
   } catch (e) {
+    console.error('Apply failed:', e);
     res.status(500).json({ error: 'Apply failed.' });
   }
 });
@@ -329,47 +334,64 @@ app.post('/api/leave/:id/approve', requireAdmin, async (req, res) => {
   const id = req.params.id;
   if (!isValidObjectId(id)) return res.status(404).json({ error: 'Request not found.' });
 
+  const dbSession = await mongoose.startSession();
+
   try {
-    const leave = await LeaveRequest.findOne({ _id: id, status: 'NOT_APPROVED' }, 'employee days status is_lop').lean();
-    if (!leave) {
+    let remainingDays = null;
+
+    await dbSession.withTransaction(async () => {
+      const leave = await LeaveRequest.findOne(
+        { _id: id, status: 'NOT_APPROVED' },
+        'employee days status is_lop'
+      ).session(dbSession);
+
+      if (!leave) {
+        throw new Error('REQUEST_NOT_FOUND');
+      }
+
+      if (!leave.is_lop) {
+        const employee = await Employee.findOneAndUpdate(
+          { _id: leave.employee, remaining_days: { $gte: leave.days } },
+          { $inc: { remaining_days: -leave.days } },
+          { new: true, session: dbSession }
+        );
+
+        if (!employee) {
+          throw new Error('INSUFFICIENT_BALANCE');
+        }
+
+        remainingDays = employee.remaining_days;
+      } else {
+        const employee = await Employee.findById(leave.employee, 'remaining_days').session(dbSession);
+        remainingDays = employee ? employee.remaining_days : null;
+      }
+
+      const approvalUpdate = await LeaveRequest.updateOne(
+        { _id: id, status: 'NOT_APPROVED' },
+        { $set: { status: 'APPROVED', decided_at: new Date(), decided_by: req.session.user.id } },
+        { session: dbSession }
+      );
+
+      if (approvalUpdate.modifiedCount === 0) {
+        throw new Error('ALREADY_DECIDED');
+      }
+    });
+
+    res.json({ ok: true, remaining_days: remainingDays });
+  } catch (e) {
+    if (e.message === 'REQUEST_NOT_FOUND') {
       return res.status(404).json({ error: 'Request not found.' });
     }
-
-    if (!leave.is_lop) {
-      // Regular leave: Check balance and deduct
-      console.log(`Attempting balance update for employee ${leave.employee}. Deducting ${leave.days} days.`);
-      const balanceUpdate = await Employee.updateOne(
-        { _id: leave.employee, remaining_days: { $gte: leave.days } },
-        { $inc: { remaining_days: -leave.days } }
-      );
-      
-      console.log('Balance update result:', balanceUpdate);
-      
-      if (balanceUpdate.modifiedCount === 0) {
-        return res.status(400).json({ error: 'Insufficient balance at approval. Consider marking as LOP or rejecting.' });
-      }
-    } else {
-      console.log(`Leave ${id} is LOP, skipping balance check/deduction.`);
+    if (e.message === 'INSUFFICIENT_BALANCE') {
+      return res.status(400).json({ error: 'Insufficient balance at approval. Consider marking as LOP or rejecting.' });
     }
-
-    const approvalUpdate = await LeaveRequest.updateOne(
-      { _id: id, status: 'NOT_APPROVED' },
-      { $set: { status: 'APPROVED', decided_at: new Date(), decided_by: req.session.user.id } }
-    );
-    
-    console.log('Approval update result:', approvalUpdate);
-    
-    if (approvalUpdate.modifiedCount === 0) {
-      // Rollback balance if necessary (though unlikely race condition here)
-      if(!leave.is_lop) {
-        await Employee.updateOne({ _id: leave.employee }, { $inc: { remaining_days: leave.days } });
-      }
+    if (e.message === 'ALREADY_DECIDED') {
       return res.status(400).json({ error: 'Already decided.' });
     }
-
-    res.json({ ok: true });
-  } catch (e) {
+    console.error('Approval failed:', e);
     res.status(500).json({ error: 'Approval failed.' });
+  } finally {
+    await dbSession.endSession();
   }
 });
 
@@ -397,27 +419,51 @@ app.post('/api/leave/:id/revert', requireAdmin, async (req, res) => {
   const id = req.params.id;
   if (!isValidObjectId(id)) return res.status(404).json({ error: 'Request not found.' });
 
+  const dbSession = await mongoose.startSession();
+
   try {
-    const leave = await LeaveRequest.findById(id, 'employee days status is_lop').lean();
-    if (!leave) return res.status(404).json({ error: 'Request not found.' });
-    if (leave.status === 'NOT_APPROVED') return res.status(400).json({ error: 'Request is already pending.' });
+    let remainingDays = null;
 
-    // If it was APPROVED and not LOP, we must return the days back to the employee
-    if (leave.status === 'APPROVED' && !leave.is_lop) {
-      await Employee.updateOne(
-        { _id: leave.employee },
-        { $inc: { remaining_days: leave.days } }
+    await dbSession.withTransaction(async () => {
+      const leave = await LeaveRequest.findById(id, 'employee days status is_lop').session(dbSession);
+      if (!leave) {
+        throw new Error('REQUEST_NOT_FOUND');
+      }
+      if (leave.status === 'NOT_APPROVED') {
+        throw new Error('ALREADY_PENDING');
+      }
+
+      if (leave.status === 'APPROVED' && !leave.is_lop) {
+        const employee = await Employee.findByIdAndUpdate(
+          leave.employee,
+          { $inc: { remaining_days: leave.days } },
+          { new: true, session: dbSession }
+        );
+        remainingDays = employee ? employee.remaining_days : null;
+      } else {
+        const employee = await Employee.findById(leave.employee, 'remaining_days').session(dbSession);
+        remainingDays = employee ? employee.remaining_days : null;
+      }
+
+      await LeaveRequest.updateOne(
+        { _id: id },
+        { $set: { status: 'NOT_APPROVED', decided_at: null, decided_by: null } },
+        { session: dbSession }
       );
-    }
+    });
 
-    await LeaveRequest.updateOne(
-      { _id: id },
-      { $set: { status: 'NOT_APPROVED', decided_at: null, decided_by: null } }
-    );
-
-    res.json({ ok: true });
+    res.json({ ok: true, remaining_days: remainingDays });
   } catch (e) {
+    if (e.message === 'REQUEST_NOT_FOUND') {
+      return res.status(404).json({ error: 'Request not found.' });
+    }
+    if (e.message === 'ALREADY_PENDING') {
+      return res.status(400).json({ error: 'Request is already pending.' });
+    }
+    console.error('Revert failed:', e);
     res.status(500).json({ error: 'Revert failed.' });
+  } finally {
+    await dbSession.endSession();
   }
 });
 

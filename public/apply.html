@@ -93,6 +93,11 @@
         const user = JSON.parse(localStorage.getItem('user'));
         if (user) document.getElementById('pNameTop').innerText = user.name;
 
+        // Replace the button to remove the default shared listener and bind one submit handler.
+        const oldApplyBtn = document.getElementById('applyBtn');
+        const newApplyBtn = oldApplyBtn.cloneNode(true);
+        oldApplyBtn.parentNode.replaceChild(newApplyBtn, oldApplyBtn);
+
         // Redirect to history after successful submission
         const originalApplyLeave = applyLeave;
         applyLeave = async () => {
@@ -115,7 +120,7 @@
                 btn.innerHTML = originalText;
             }
         };
-        document.getElementById('applyBtn').addEventListener('click', applyLeave);
+        newApplyBtn.addEventListener('click', applyLeave);
     </script>
 </body>
 
