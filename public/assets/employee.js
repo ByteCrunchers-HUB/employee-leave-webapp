@@ -1,5 +1,5 @@
 async function loadMe() {
-  const res = await fetch('/api/me');
+  const res = await fetch('/api/me', { cache: 'no-store' });
   if (!res.ok) return location.href = '/';
   const data = await res.json();
   const u = data.user;
@@ -27,7 +27,7 @@ async function loadMe() {
 }
 
 async function loadMine() {
-  const res = await fetch('/api/leave/mine');
+  const res = await fetch('/api/leave/mine', { cache: 'no-store' });
   if (!res.ok) return;
   const data = await res.json();
   const tbody = document.getElementById('myRows');

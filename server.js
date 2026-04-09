@@ -192,6 +192,7 @@ app.get('/api/me', requireAuth, async (req, res) => {
 
   if (!user) return res.status(404).json({ error: 'User not found.' });
 
+  console.log(`FETCH ME: User ${user.email} has balance ${user.remaining_days}`);
   res.json({ user });
 });
 
@@ -320,19 +321,27 @@ app.post('/api/leave/:id/approve', requireAdmin, async (req, res) => {
 
     if (!leave.is_lop) {
       // Regular leave: Check balance and deduct
+      console.log(`Attempting balance update for employee ${leave.employee}. Deducting ${leave.days} days.`);
       const balanceUpdate = await Employee.updateOne(
         { _id: leave.employee, remaining_days: { $gte: leave.days } },
         { $inc: { remaining_days: -leave.days } }
       );
+      
+      console.log('Balance update result:', balanceUpdate);
+      
       if (balanceUpdate.modifiedCount === 0) {
         return res.status(400).json({ error: 'Insufficient balance at approval. Consider marking as LOP or rejecting.' });
       }
+    } else {
+      console.log(`Leave ${id} is LOP, skipping balance check/deduction.`);
     }
 
     const approvalUpdate = await LeaveRequest.updateOne(
       { _id: id, status: 'NOT_APPROVED' },
       { $set: { status: 'APPROVED', decided_at: new Date(), decided_by: req.session.user.id } }
     );
+    
+    console.log('Approval update result:', approvalUpdate);
     
     if (approvalUpdate.modifiedCount === 0) {
       // Rollback balance if necessary (though unlikely race condition here)

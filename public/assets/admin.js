@@ -63,7 +63,7 @@ async function addEmployee() {
 }
 
 async function loadStack() {
-  const res = await fetch('/api/leave/stack');
+  const res = await fetch('/api/leave/stack', { cache: 'no-store' });
   if (!res.ok) return location.href = '/';
   const data = await res.json();
   const tbody = document.getElementById('stackRows');
